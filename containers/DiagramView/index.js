@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Navigator, PanResponder, Dimensions, Animated, TouchableHighlight, Image, View } from 'react-native';
-import { Container, Header, Button, Icon, Text, DeckSwiper, Card, CardItem, Thumbnail, Left, Body, Right, Spinner, Separator } from 'native-base';
+import { Container, Header, Button, Icon, Text, DeckSwiper, Card, CardItem, Thumbnail, Left, Body, Right, Spinner, Separator, Title } from 'native-base';
 import { Actions } from 'react-native-router-flux';
 import Swiper from "react-native-deck-swiper";
 import * as Animatable from 'react-native-animatable';
@@ -130,16 +130,11 @@ export default class DiagramView extends React.Component {
     renderCard = card => {
         const arrows = this.filterArrows(card.lines);
         return (
-            <View style={styles.container}>
+            <View style={styles.containerCard}>
                 {this.generateTopArrows(arrows.inArrows)}
                 <View
                     style={styles.tileContainer}
                 >
-                    {card.DrillDown ? (<View style={styles.buttonsContainer}>
-                        <Button style={styles.cardBar} bordered onPress={() => Actions.diagramView({ fileName: card.DrillDown['#text'] })}>
-                            <Icon name='arrow-down' />
-                        </Button>
-                    </View>) : null}
                     <View style={styles.mainTileTextContainer}><Text style={styles.mainTileText}>{card.name}</Text></View>
                     {this.getResourceName(card.RequiredResource)}
                 </View>
@@ -171,30 +166,46 @@ export default class DiagramView extends React.Component {
     }
 // Actions.diagramView({ fileName: this.state.nextSlide })}
 
+    goPrevious = () => {
+        const nextSlide = this.props.navigation.state.params.fileName.slice(0, this.props.navigation.state.params.fileName.length-2);
+        Actions.diagramView({ fileName: nextSlide });
+    }
+
     render() {
         return (
             <Container>
                 <Header style={{ backgroundColor: '#6B7A96' }}>
                     <Left>
-                        <Button transparent onPress={() => Actions.diagramsList()}>
-                            <Icon name='ios-list' />
-                        </Button>
+                        <View style={styles.leftButton}>
+                            <Button transparent onPress={() => Actions.diagramsList()}>
+                                <Icon name='ios-list' />
+                            </Button>
+                            {this.props.navigation.state.params.fileName.length > 3 ? <Button style={styles.upButton} transparent onPress={this.goPrevious}>
+                                <Icon name='ios-arrow-round-up' />
+                            </Button> : null}
+                        </View>
                     </Left>
-                    <Body><Text style={styles.nextSlideFont}>{this.state.isFetched ? `Next Level: ${this.state.nextSlide}` : ''}</Text></Body>
+                    <Body>
+                        <View style={styles.title}>
+                            <View><Text>                  </Text></View>
+                            <Text style={styles.nextSlideFont}>{this.state.isFetched ? `Go To: ${this.state.nextSlide}` : ''}</Text>
+                        </View>
+                    </Body>
                     <Right>
                         <Button transparent onPress={() => Actions.diagramView({ fileName: this.state.nextSlide })}>
                             <Icon name='ios-arrow-round-forward-outline' />
                         </Button>
                     </Right>
                 </Header>
-                <View style={styles.container}>
+                <View style={styles.swipeContainer}>
                     {(this.state.isFetched && this.state.diagramElements.length) ? <Text style={styles.currentLevel}>{`Current Level ${this.props.navigation.state.params.fileName}`}</Text> : null}
-                    {(this.state.isFetched && this.state.diagramElements.length) ? <View style={styles.container}>
+                    {(this.state.isFetched && this.state.diagramElements.length) ? <View style={styles.swipeContainer}>
                         <Swiper
                             swipeAnimationDuration={200}
                             showSecondCard={false}
-                            backgroundColor="#EAEBF0"
+                            backgroundColor="transparent"
                             marginBottom={60}
+                            marginTop={-40}
                             infinite
                             ref={swiper => {
                                 this.swiper = swiper;
@@ -223,26 +234,46 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
+    },
+    title: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    upButton: {
+        marginLeft: 10,
+    },
+    leftButton: {
+        flexDirection: 'row',
+    },
+    swipeContainer: {
+        flex: 1,
+    },
+    containerCard: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
     },
     arrowContainer: {
         flex: 1,
     },
     tileContainer: {
-        flex: .6,
+        flex: .8,
+        justifyContent: 'flex-start',
         flexDirection: 'column',
         backgroundColor: '#EAEBF0',
         borderRadius: 4,
         borderWidth: 1,
         borderColor: '#000',
-        marginTop: 5,
+        marginTop: 0,
         marginBottom: 5,
     },
     buttonsContainer: {
         flexDirection: 'row',
     },
     cardBar: {
-        marginTop: 5,
+        marginTop: 0,
         marginLeft: 5,
     },
     mainTileTextContainer: {
@@ -254,7 +285,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     bottomTextContainer: {
-        flex: 0.5,
+        flex: 0.3,
         justifyContent: 'center',
         backgroundColor: '#6B7A96',
         borderBottomWidth: 1,
@@ -300,10 +331,13 @@ const styles = StyleSheet.create({
     nextSlideFont: {
         fontSize: 15,
         color: '#fff',
-        textAlign: 'right'
+        textAlign: 'right',
+        justifyContent: 'flex-end',
     },
     dotContainer: {
         marginBottom: 10,
+        height: 10,
+        marginLeft: 20,
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row'
@@ -326,6 +360,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
+        zIndex: 9999,
+    },
+    headerView: {
+        flex: .5,
+        flexDirection: 'row',
+        justifyContent: 'center',
     }
 
 });
